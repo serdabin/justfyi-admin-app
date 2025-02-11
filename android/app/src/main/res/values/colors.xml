@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_dark">#000000</color>
+    <color name="white">#ffffff</color>
+    <color name="red">#db0d0d</color>
+    <color name="royal_purple">#7030A0</color>
+    <color name="primary_orange">#ff5400</color>
+</resources>

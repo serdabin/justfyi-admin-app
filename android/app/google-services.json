@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "902071509315",
+    "project_id": "justfyi-16473",
+    "storage_bucket": "justfyi-16473.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902071509315:android:a1d2bf8327e1bbb4c3cff6",
+        "android_client_info": {
+          "package_name": "com.justfyiapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsjWPHwdxv52SgLXN_YGkJB4277_FMTy0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

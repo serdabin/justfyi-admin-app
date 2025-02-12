@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@notifee/react-native": "^9.1.8",
+    "@react-native-async-storage/async-storage": "^1.24.0",
+    "@react-native-firebase/app": "^21.8.0",
+    "@react-native-firebase/messaging": "^21.8.0",
+    "axios": "^1.7.9",
     "react": "18.3.1",
     "react-native": "0.77.0",
     "react-native-safe-area-context": "^5.2.0",

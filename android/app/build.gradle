@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-
+apply plugin: "com.google.gms.google-services"
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -122,6 +122,8 @@ dependencies {
     implementation 'androidx.core:core-splashscreen:1.0.0-beta01'
     implementation "androidx.appcompat:appcompat:1.0.0"
     implementation 'androidx.core:core-ktx:1.6.0'
+    implementation platform('com.google.firebase:firebase-bom:33.9.0')
+    implementation 'com.google.firebase:firebase-messaging'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

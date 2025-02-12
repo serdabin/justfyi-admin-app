@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.justfyiapp"
   xmlns:tools="http://schemas.android.com/tools">
 
   <uses-permission android:name="android.permission.INTERNET" />
@@ -34,16 +35,29 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+
     <meta-data
-      android:name="com.notifee.notification.default_notification_icon"
+      android:name="com.google.firebase.messaging.default_notification_icon"
       android:resource="@mipmap/ic_notification" />
+
     <meta-data
-      android:name="com.notifee.notification.default_notification_color"
+      tools:replace="android:resource"
+      android:name="com.google.firebase.messaging.default_notification_color"
       android:resource="@color/primary_orange" />
 
     <meta-data
       tools:replace="android:value"
-      android:name="com.notifee.notification.default_notification_channel_id"
+      android:name="com.google.firebase.messaging.default_notification_channel_id"
       android:value="@string/default_notification_channel_id" />
+
+    <!-- Add this receiver to handle notification actions -->
+    <receiver
+      android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+      </intent-filter>
+    </receiver>
+    
   </application>
 </manifest>

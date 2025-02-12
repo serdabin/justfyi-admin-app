@@ -2,7 +2,10 @@ declare global {
   var webViewRef: any;
 }
 
+import { getApp } from '@react-native-firebase/app';
+import { getMessaging, getToken, deleteToken, onMessage, FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import messaging from '@react-native-firebase/messaging';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, {
   AndroidImportance,
@@ -13,24 +16,33 @@ import { AuthAPI } from './api';
 
 export class NotificationService {
   static async requestUserPermission() {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    try {
+      // Use the namespaced API since that's what's available
+      const authStatus = await messaging().requestPermission();
 
-    if (enabled) {
-      console.log('Authorization status:', authStatus);
-      await this.getFCMToken();
+      const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        const token = await this.getFCMToken();
+        console.log('Token obtained:', token ? 'yes' : 'no');
+      }
+
+      return enabled;
+    } catch (error) {
+      console.error('Permission request failed:', error);
+      return false;
     }
   }
 
   static async getFCMToken() {
     try {
-      const newToken = await messaging().getToken();
+      const messaging = getMessaging(getApp());
+      const newToken = await getToken(messaging);
       if (newToken) {
-        console.log('FCM token:', newToken);
+        console.log('FCM token case 1:', newToken);
         await AsyncStorage.setItem('fcmToken', newToken);
       }
+      console.log('FCM token case 2:', newToken);
       return newToken;
     } catch (error) {
       console.log('Error getting FCM token:', error);
@@ -38,16 +50,16 @@ export class NotificationService {
     }
   }
 
-
   static async onNotificationReceived(callback: (notification: any) => void) {
     // Handle background messages
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
+    const messaging = getMessaging(getApp());
+    messaging.setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
       console.log('Message handled in the background!', remoteMessage);
       callback(remoteMessage);
     });
 
     // Handle foreground messages
-    return messaging().onMessage(async remoteMessage => {
+    return onMessage(messaging, async remoteMessage => {
       console.log('Received foreground message:', remoteMessage);
       callback(remoteMessage);
     });
@@ -123,8 +135,10 @@ export class NotificationService {
     console.log('Initializing notifications');
     await this.requestUserPermission();
 
+    const messaging = getMessaging(getApp());
+
     // Add token refresh handler
-    messaging().onTokenRefresh(async (newToken) => {
+    messaging.onTokenRefresh(async (newToken: string) => {
       console.log('FCM Token refreshed:', newToken);
       const oldToken = await AsyncStorage.getItem('fcmToken');
       await AsyncStorage.setItem('fcmToken', newToken);
@@ -148,14 +162,15 @@ export class NotificationService {
       }
     });
 
-
     // Handle background messages
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
+    messaging.setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+      console.log('Received background message:', remoteMessage);
       await this.handleNotification(remoteMessage);
     });
 
     // Handle foreground messages
-    messaging().onMessage(async remoteMessage => {
+    onMessage(messaging, async remoteMessage => {
+      console.log('Received foreground message:', remoteMessage);
       await this.handleNotification(remoteMessage);
     });
 
@@ -175,12 +190,30 @@ export class NotificationService {
 
   public static async clearFCMToken() {
     try {
+      // Get current token for backend cleanup
+      const token = await AsyncStorage.getItem('fcmToken');
+      
+      // Clear local storage
       await AsyncStorage.removeItem('fcmToken');
+      await AsyncStorage.removeItem('currentUserId');
+      
+      // Delete Firebase token
       await messaging().deleteToken();
-      return true;
+      
+      console.log('FCM token cleared successfully');
+      return token;  // Return old token in case needed for cleanup
     } catch (error) {
       console.error('Error clearing FCM token:', error);
-      return false;
+      return null;
+    }
+  }
+
+  public static async setCurrentUser(userId: string | number) {
+    try {
+      // Ensure userId is stored as string
+      await AsyncStorage.setItem('currentUserId', String(userId));
+    } catch (error) {
+      console.error('Error setting current user:', error);
     }
   }
 }

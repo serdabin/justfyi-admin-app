@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 export const AuthAPI = {
   registerDeviceToken: async (data: { userId: string; deviceToken: string }) => {
     try {
-      const response = await axiosInstance.post('/api/device-tokens/register', data);
+      const response = await axiosInstance.post('/api/device-token/add', data);
       return response.data;
     } catch (error) {
       console.error('Error registering device token:', error);
@@ -19,7 +19,7 @@ export const AuthAPI = {
 
   removeDeviceToken: async (data: { userId: string; deviceToken: string }) => {
     try {
-      const response = await axiosInstance.post('/api/device-tokens/remove', data);
+      const response = await axiosInstance.post('/api/device-token/remove', data);
       return response.data;
     } catch (error) {
       console.error('Error removing device token:', error);

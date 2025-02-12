@@ -12,12 +12,13 @@ import { AuthAPI } from './src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WebViewMessage = {
-  type: 'login' | 'logout';
+  type: 'login' | 'logout' | 'system';
   data: {
     user_data?: {
       id: string;
     };
     userId?: string;
+    message?: string;
   };
 };
 
@@ -40,18 +41,27 @@ function App(): React.JSX.Element {
   }, []);
 
   const onWebViewMessage = async (event: any) => {
+    console.log('Received message:', event.nativeEvent.data);
     try {
       const message: WebViewMessage = JSON.parse(event.nativeEvent.data);
-      console.log('Received message:', message);
+      console.log('Parsed message:', message);
 
       switch (message.type) {
         case 'login':
           if (message.data.user_data?.id) {
             const fcmToken = await NotificationService.getFCMToken();
             if (fcmToken) {
-              await AsyncStorage.setItem('currentUserId', message.data.user_data.id);
-
               try {
+                // Store current user ID
+                await NotificationService.setCurrentUser(message.data.user_data.id);
+
+                const payload = {
+                  userId: message.data.user_data.id,
+                  deviceToken: fcmToken
+                };
+
+                console.log('Payload:', payload);
+                // Register device token
                 await AuthAPI.registerDeviceToken({
                   userId: message.data.user_data.id,
                   deviceToken: fcmToken
@@ -68,18 +78,22 @@ function App(): React.JSX.Element {
           try {
             const currentToken = await NotificationService.getFCMToken();
             if (currentToken && message.data.userId) {
-              // First remove from backend to ensure notifications stop
+              // First remove from backend
               await AuthAPI.removeDeviceToken({
                 userId: message.data.userId,
                 deviceToken: currentToken
               });
+              // Then clear local token
+              await NotificationService.clearFCMToken();
+              console.log('Device token cleared successfully');
             }
-            // Then clear local token
-            await NotificationService.clearFCMToken();
-            console.log('Device token cleared successfully');
           } catch (error) {
             console.error('Failed to handle logout:', error);
           }
+          break;
+
+        case 'system':
+          console.log('System message:', message.data.message);
           break;
       }
     } catch (error) {
@@ -87,10 +101,34 @@ function App(): React.JSX.Element {
     }
   };
 
-  // Inject JavaScript to handle communication with React Native
   const injectedJavaScript = `
+(function() {
+  // Function to safely handle message posting
+  function postMessage(type, data) {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: type,
+        data: data
+      }));
+    }
+  }
 
-  `;
+  // Listen for userLogin event
+  window.addEventListener('userLogin', function(e) {
+    const response = e.detail;
+    postMessage('login', { user_data: response.user_data });
+  });
+
+  // Listen for userLogout event
+  window.addEventListener('userLogout', function(e) {
+    const userId = e.detail;
+    postMessage('logout', { userId: userId });
+  });
+
+  // Notify that WebView is loaded
+  postMessage('system', { message: 'WebView Loaded' });
+})();
+`;
 
   return (
     <SafeAreaProvider>

@@ -9,7 +9,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SplashScreen from 'react-native-splash-screen';
 import { NotificationService } from './src/services/NotificationService';
 import { AuthAPI } from './src/services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WebViewMessage = {
   type: 'login' | 'logout' | 'system';
@@ -57,14 +56,14 @@ function App(): React.JSX.Element {
 
                 const payload = {
                   userId: message.data.user_data.id,
-                  deviceToken: fcmToken
+                  deviceToken: fcmToken,
                 };
 
                 console.log('Payload:', payload);
                 // Register device token
                 await AuthAPI.registerDeviceToken({
                   userId: message.data.user_data.id,
-                  deviceToken: fcmToken
+                  deviceToken: fcmToken,
                 });
                 console.log('Device token registered successfully');
               } catch (error) {
@@ -81,7 +80,7 @@ function App(): React.JSX.Element {
               // First remove from backend
               await AuthAPI.removeDeviceToken({
                 userId: message.data.userId,
-                deviceToken: currentToken
+                deviceToken: currentToken,
               });
               // Then clear local token
               await NotificationService.clearFCMToken();

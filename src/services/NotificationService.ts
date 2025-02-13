@@ -3,7 +3,7 @@ declare global {
 }
 
 import { getApp } from '@react-native-firebase/app';
-import { getMessaging, getToken, deleteToken, onMessage, FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { getMessaging, getToken, onMessage, FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import messaging from '@react-native-firebase/messaging';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -149,12 +149,12 @@ export class NotificationService {
           if (oldToken) {
             await AuthAPI.removeDeviceToken({
               userId,
-              deviceToken: oldToken
+              deviceToken: oldToken,
             });
           }
           await AuthAPI.registerDeviceToken({
             userId,
-            deviceToken: newToken
+            deviceToken: newToken,
           });
         }
       } catch (error) {
@@ -192,14 +192,14 @@ export class NotificationService {
     try {
       // Get current token for backend cleanup
       const token = await AsyncStorage.getItem('fcmToken');
-      
+
       // Clear local storage
       await AsyncStorage.removeItem('fcmToken');
       await AsyncStorage.removeItem('currentUserId');
-      
+
       // Delete Firebase token
       await messaging().deleteToken();
-      
+
       console.log('FCM token cleared successfully');
       return token;  // Return old token in case needed for cleanup
     } catch (error) {
